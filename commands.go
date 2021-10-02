@@ -8,6 +8,9 @@ type command struct {
 	handler    func(*discordgo.Session, *discordgo.InteractionCreate)
 }
 
+// commandType is a type alias.
+type commandOption = discordgo.ApplicationCommandInteractionDataOption
+
 // All commands are specified here.
 var commands = []*command{
 	{
@@ -25,7 +28,7 @@ var commands = []*command{
 }
 
 // Invokes a subcommand with the arguments if it matches the given name.
-func commandWhen(o []*discordgo.ApplicationCommandInteractionDataOption, s string, do func([]*discordgo.ApplicationCommandInteractionDataOption)) {
+func commandWhen(o []*commandOption, s string, do func([]*commandOption)) {
 	for _, opt := range o {
 		if opt.Name == s {
 			do(opt.Options)
@@ -35,12 +38,12 @@ func commandWhen(o []*discordgo.ApplicationCommandInteractionDataOption, s strin
 }
 
 // Invokes a function with an option if it matches the given name.
-func commandGet1(o []*discordgo.ApplicationCommandInteractionDataOption, s string, do func(*discordgo.ApplicationCommandInteractionDataOption)) {
+func commandGet1(o []*commandOption, s string, do func(*commandOption)) {
 	do(commandGet2(o, s))
 }
 
 // Gets an option value if it matches the given name.
-func commandGet2(o []*discordgo.ApplicationCommandInteractionDataOption, s string) *discordgo.ApplicationCommandInteractionDataOption {
+func commandGet2(o []*commandOption, s string) *commandOption {
 	for _, opt := range o {
 		if opt.Name == s {
 			return opt

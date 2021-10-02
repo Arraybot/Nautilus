@@ -70,7 +70,7 @@ var commandPing = discordgo.ApplicationCommand{
 // Will respond with a fancy embed.
 var handleConvert = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	o := i.ApplicationCommandData().Options
-	commandWhen(o, "hex", func(o []*discordgo.ApplicationCommandInteractionDataOption) {
+	commandWhen(o, "hex", func(o []*commandOption) {
 		// These values will strategically underflow and cause values > 255.
 		r := uint32(commandGet2(o, "red").IntValue())
 		g := uint32(commandGet2(o, "green").IntValue())
@@ -85,8 +85,8 @@ var handleConvert = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		embed.field("Result", result, false)
 		s.InteractionRespond(i.Interaction, respondEmbed(embed, true))
 	})
-	commandWhen(o, "rgb", func(o []*discordgo.ApplicationCommandInteractionDataOption) {
-		commandGet1(o, "colour", func(o *discordgo.ApplicationCommandInteractionDataOption) {
+	commandWhen(o, "rgb", func(o []*commandOption) {
+		commandGet1(o, "colour", func(o *commandOption) {
 			raw := o.StringValue()
 			// Ensure it matches the regular expression.
 			if !hexMatchRegex.MatchString(raw) {
