@@ -50,6 +50,7 @@ func (t *ttlCache) invalidate(k string) {
 // Caches whether or not to send commands invsible to the server.
 // Valid for: 10 minutes.
 var cacheInvisibility = ttlCache{
+	m: make(map[string]*ttlItem),
 	f: func(k string) bool {
 		// TODO: implement.
 		return true

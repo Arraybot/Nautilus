@@ -82,7 +82,7 @@ var commandStats = discordgo.ApplicationCommand{
 
 // The convert command.
 // Will respond with a fancy embed.
-var handleConvert = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func handleConvert(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	o := i.ApplicationCommandData().Options
 	commandWhen(o, "hex", func(o []*commandOption) {
 		// These values will strategically underflow and cause values > 255.
@@ -91,27 +91,27 @@ var handleConvert = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		b := uint32(commandGet2(o, "blue").IntValue())
 		// Check if the input range is valid.
 		if r > 255 || g > 255 || b > 255 {
-			s.InteractionRespond(i.Interaction, respondText("Invalid values for at least one colour (out of range, [0-255]).", true))
+			s.InteractionRespond(i.Interaction, respondText("Invalid values for at least one colour (out of range, [0-255]).", i))
 			return
 		}
 		result := fmt.Sprintf("#%x", rgbToHex(r, g, b))
 		embed := embed()
 		embed.field("Result", result, false)
-		s.InteractionRespond(i.Interaction, respondEmbed(embed, true))
+		s.InteractionRespond(i.Interaction, respondEmbed(embed, i))
 	})
 	commandWhen(o, "rgb", func(o []*commandOption) {
 		commandGet1(o, "colour", func(o *commandOption) {
 			raw := o.StringValue()
 			// Ensure it matches the regular expression.
 			if !hexMatchRegex.MatchString(raw) {
-				s.InteractionRespond(i.Interaction, respondText("Invalid hex code provided (format unknown).", true))
+				s.InteractionRespond(i.Interaction, respondText("Invalid hex code provided (format unknown).", i))
 				return
 			}
 			// Extract all the non-hex characters.
 			parsed := hexReplaceRegex.ReplaceAllString(raw, "")
 			hex, err := strconv.ParseUint(parsed, 16, 32)
 			if err != nil {
-				s.InteractionRespond(i.Interaction, respondText("Invalid hex code provided (out of range).", true))
+				s.InteractionRespond(i.Interaction, respondText("Invalid hex code provided (out of range).", i))
 				return
 			}
 			r, g, b := hexToRgb(hex)
@@ -119,14 +119,14 @@ var handleConvert = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			result := fmt.Sprintf("R: %d, G: %d, B: %d", r, g, b)
 			embed := embed()
 			embed.field("Result", result, false)
-			s.InteractionRespond(i.Interaction, respondEmbed(embed, true))
+			s.InteractionRespond(i.Interaction, respondEmbed(embed, i))
 		})
 	})
 }
 
 // The help command.
 // Will display an embed with some useful information.
-var handleHelp = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func handleHelp(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed := embed()
 	description := "Arraybot is a multipurpose toolbox designed to run your guild. " +
 		"Since 2016, Arraybot has powered some of Discord's biggest servers. " +
@@ -150,27 +150,27 @@ var handleHelp = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed.Embed.Footer = &discordgo.MessageEmbedFooter{
 		Text: "Arraybot is an open source project.",
 	}
-	s.InteractionRespond(i.Interaction, respondEmbed(embed, true))
+	s.InteractionRespond(i.Interaction, respondEmbed(embed, i))
 }
 
 // The invite command.
 // Will send an embed with clickable links to invite the bot and join the server.
-var handleInvite = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func handleInvite(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed := embed()
 	embed.field("Invite Bot", "[https://arraybot.xyz/go/invite/](https://arraybot.xyz/go/invite)", false)
 	embed.field("Join Server", "[https://arraybot.xyz/go/server/](https://arraybot.xyz/go/server/)", false)
-	s.InteractionRespond(i.Interaction, respondEmbed(embed, true))
+	s.InteractionRespond(i.Interaction, respondEmbedRaw(embed, 64))
 }
 
 // The ping command.
 // Will just respond with a message.
-var handlePing = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	s.InteractionRespond(i.Interaction, respondText("Pong! Command handler online and responsive.", true))
+func handlePing(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	s.InteractionRespond(i.Interaction, respondText("Pong! Command handler online and responsive.", i))
 }
 
 // The stats command.
 // Will show a few statistics.
-var handleStats = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func handleStats(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed := embed()
 	embed.description("Here are some statistics.")
 	// TODO obtain actual statistics.
@@ -186,7 +186,7 @@ var handleStats = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed.field("Tot.Alloc.", fmt.Sprintf("%v MiB", bytesToMegabytes(mem.TotalAlloc)), true)
 	embed.field("Sys.Alloc.", fmt.Sprintf("%v MiB", bytesToMegabytes(mem.Sys)), true)
 	embed.field("Uptime", elapsed, true)
-	s.InteractionRespond(i.Interaction, respondEmbed(embed, true))
+	s.InteractionRespond(i.Interaction, respondEmbed(embed, i))
 }
 
 // Helper variables.

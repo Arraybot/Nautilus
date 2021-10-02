@@ -38,12 +38,16 @@ func (e *EmbedBuilder) field(t, v string, b bool) {
 }
 
 // Helper function that responds to an interaction using an embed.
-// Optionally, it can be specified if it should be executed quietly or not.
-func respondEmbed(e *EmbedBuilder, q bool) *discordgo.InteractionResponse {
+func respondEmbed(e *EmbedBuilder, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
 	var flag uint64 = 0
-	if q {
+	if cacheInvisibility.get(i.GuildID) {
 		flag = 64
 	}
+	return respondEmbedRaw(e, flag)
+}
+
+// Helper function that responds to an interaction using an embed and a manual flag.
+func respondEmbedRaw(e *EmbedBuilder, flag uint64) *discordgo.InteractionResponse {
 	return &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -54,10 +58,9 @@ func respondEmbed(e *EmbedBuilder, q bool) *discordgo.InteractionResponse {
 }
 
 // Helper method that responds to an interaction using just text.
-// Optionally, it can be specified if it should be executed quietly or not.
-func respondText(s string, q bool) *discordgo.InteractionResponse {
+func respondText(s string, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
 	var flag uint64 = 0
-	if q {
+	if cacheInvisibility.get(i.GuildID) {
 		flag = 64
 	}
 	return &discordgo.InteractionResponse{
