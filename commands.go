@@ -22,6 +22,10 @@ var commands = []*command{
 		handler:    handleHelp,
 	},
 	{
+		appCommand: &commandInvite,
+		handler:    handleInvite,
+	},
+	{
 		appCommand: &commandPing,
 		handler:    handlePing,
 	},

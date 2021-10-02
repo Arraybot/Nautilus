@@ -60,6 +60,12 @@ var commandHelp = discordgo.ApplicationCommand{
 	Description: "Shows helpful information on the bot.",
 }
 
+// The invite command.
+var commandInvite = discordgo.ApplicationCommand{
+	Name:        "invite",
+	Description: "Shows an invite link for the server and bot.",
+}
+
 // The ping command.
 var commandPing = discordgo.ApplicationCommand{
 	Name:        "ping",
@@ -136,6 +142,15 @@ var handleHelp = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed.Embed.Footer = &discordgo.MessageEmbedFooter{
 		Text: "Arraybot is an open source project.",
 	}
+	s.InteractionRespond(i.Interaction, respondEmbed(embed, true))
+}
+
+// The invite command.
+// Will send an embed with clickable links to invite the bot and join the server.
+var handleInvite = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	embed := embed()
+	embed.field("Invite Bot", "[https://arraybot.xyz/go/invite/](https://arraybot.xyz/go/invite)", false)
+	embed.field("Join Server", "[https://arraybot.xyz/go/server/](https://arraybot.xyz/go/server/)", false)
 	s.InteractionRespond(i.Interaction, respondEmbed(embed, true))
 }
 
