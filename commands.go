@@ -14,24 +14,79 @@ type commandOption = discordgo.ApplicationCommandInteractionDataOption
 // All commands are specified here.
 var commands = []*command{
 	{
-		appCommand: &commandConvert,
-		handler:    handleConvert,
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "convert",
+			Description: "Converts various values.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "hex",
+					Description: "Convert an RGB colour to hexadecimal.",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "red",
+							Description: "The red value.",
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Required:    true,
+						},
+						{
+							Name:        "green",
+							Description: "The green value.",
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Required:    true,
+						},
+						{
+							Name:        "blue",
+							Description: "The blue value.",
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Required:    true,
+						},
+					},
+				},
+				{
+					Name:        "rgb",
+					Description: "Convert a hexadecimal colour to RGB.",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "colour",
+							Description: "The colour in hexadecimal.",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+						},
+					},
+				},
+			},
+		},
+		handler: handleConvert,
 	},
 	{
-		appCommand: &commandHelp,
-		handler:    handleHelp,
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "help",
+			Description: "Shows helpful information on the bot.",
+		},
+		handler: handleHelp,
 	},
 	{
-		appCommand: &commandInvite,
-		handler:    handleInvite,
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "invite",
+			Description: "Shows an invite link for the server and bot.",
+		},
+		handler: handleInvite,
 	},
 	{
-		appCommand: &commandPing,
-		handler:    handlePing,
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "ping",
+			Description: "Checks if the bot is online.",
+		},
+		handler: handlePing,
 	},
 	{
-		appCommand: &commandStats,
-		handler:    handleStats,
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "stats",
+			Description: "Shows bot usage and technical statistics.",
+		},
+		handler: handleStats,
 	},
 }
 
