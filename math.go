@@ -1,5 +1,6 @@
 package main
 
+// Convert RGB values to integer.
 func rgbToHex(r, g, b uint32) uint32 {
 	// Red is MS 8 bits.
 	val := (r << 16)
@@ -10,6 +11,7 @@ func rgbToHex(r, g, b uint32) uint32 {
 	return val
 }
 
+// Convert integer to RGB values.
 func hexToRgb(hex uint64) (uint8, uint8, uint8) {
 	// Red is MS 8 bits.
 	r := uint8(hex >> 16)

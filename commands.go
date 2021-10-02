@@ -15,11 +15,16 @@ var commands = []*command{
 		handler:    handleConvert,
 	},
 	{
+		appCommand: &commandHelp,
+		handler:    handleHelp,
+	},
+	{
 		appCommand: &commandPing,
 		handler:    handlePing,
 	},
 }
 
+// Invokes a subcommand with the arguments if it matches the given name.
 func commandWhen(o []*discordgo.ApplicationCommandInteractionDataOption, s string, do func([]*discordgo.ApplicationCommandInteractionDataOption)) {
 	for _, opt := range o {
 		if opt.Name == s {
@@ -29,10 +34,12 @@ func commandWhen(o []*discordgo.ApplicationCommandInteractionDataOption, s strin
 	}
 }
 
+// Invokes a function with an option if it matches the given name.
 func commandGet1(o []*discordgo.ApplicationCommandInteractionDataOption, s string, do func(*discordgo.ApplicationCommandInteractionDataOption)) {
 	do(commandGet2(o, s))
 }
 
+// Gets an option value if it matches the given name.
 func commandGet2(o []*discordgo.ApplicationCommandInteractionDataOption, s string) *discordgo.ApplicationCommandInteractionDataOption {
 	for _, opt := range o {
 		if opt.Name == s {

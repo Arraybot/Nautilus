@@ -54,6 +54,12 @@ var commandConvert = discordgo.ApplicationCommand{
 	},
 }
 
+// The help command.
+var commandHelp = discordgo.ApplicationCommand{
+	Name:        "help",
+	Description: "Shows helpful information on the bot.",
+}
+
 // The ping command.
 var commandPing = discordgo.ApplicationCommand{
 	Name:        "ping",
@@ -104,6 +110,35 @@ var handleConvert = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	})
 }
 
+// The help command.
+// Will display an embed with some useful information.
+var handleHelp = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	embed := embed()
+	description := "Arraybot is a multipurpose toolbox designed to run your guild. " +
+		"Since 2016, Arraybot has powered some of Discord's biggest servers. " +
+		"Arraybot's goals are reliability, flexibility, acccessibility.\n" + zwsp
+	startUser := "For users, Arraybot is mainly command-based.\n" +
+		"**1.** Execute the `/guide` command to show the current server's guide.\n" +
+		"**2.** All commands can be found by opening the Discord command menu and selecting Arraybot.\n" + zwsp
+	startAdmin := "Configuring Arraybot is done on the web panel.\n" +
+		"**1.** Visit the [web panel](https://arraybot.xyz/panel/) and log in.\n" +
+		"**2.** Configure the bot to your liking.\n" +
+		"**3.** Consult the [documentation](https://arraybot.xyz/go/docs/) if you get stuck.\n" +
+		"**4.** Discuss and provide feedback on the server, GitHub, etc.\n" + zwsp
+	links := "Here are some helpful links.\n" +
+		"**1.** Check out the [website](https://arraybot.xyz/).\n" +
+		"**2.** Join the [server](https://arraybot.xyz/go/server/).\n" +
+		"**3.** Invite the [bot](https://arraybot.xyz/go/invite/) to your server."
+	embed.description(description)
+	embed.field("User Guide", startUser, false)
+	embed.field("Server Admin Guide", startAdmin, false)
+	embed.field("Links", links, false)
+	embed.Embed.Footer = &discordgo.MessageEmbedFooter{
+		Text: "Arraybot is an open source project.",
+	}
+	s.InteractionRespond(i.Interaction, respondEmbed(embed, true))
+}
+
 // The ping command.
 // Will just respond with a message.
 var handlePing = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -111,5 +146,6 @@ var handlePing = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 }
 
 // Helper variables.
+var zwsp = "\u200b"
 var hexMatchRegex = regexp.MustCompile("#?[0-9a-fA-F]{6}")
 var hexReplaceRegex = regexp.MustCompile("[^0-9a-fA-F]")
