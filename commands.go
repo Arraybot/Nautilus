@@ -29,6 +29,10 @@ var commands = []*command{
 		appCommand: &commandPing,
 		handler:    handlePing,
 	},
+	{
+		appCommand: &commandStats,
+		handler:    handleStats,
+	},
 }
 
 // Invokes a subcommand with the arguments if it matches the given name.

@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -70,6 +72,12 @@ var commandInvite = discordgo.ApplicationCommand{
 var commandPing = discordgo.ApplicationCommand{
 	Name:        "ping",
 	Description: "Checks if the bot is online.",
+}
+
+// The stats command.
+var commandStats = discordgo.ApplicationCommand{
+	Name:        "stats",
+	Description: "Shows bot usage and technical statistics.",
 }
 
 // The convert command.
@@ -158,6 +166,27 @@ var handleInvite = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // Will just respond with a message.
 var handlePing = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.InteractionRespond(i.Interaction, respondText("Pong! Command handler online and responsive.", true))
+}
+
+// The stats command.
+// Will show a few statistics.
+var handleStats = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	embed := embed()
+	embed.description("Here are some statistics.")
+	// TODO obtain actual statistics.
+	statsGuilds := -1
+	statsMessages := -1
+	statsCommandsRun := -1
+	embed.field("# of Servers", strconv.Itoa(statsGuilds), true)
+	embed.field("# of Messages", strconv.Itoa(statsMessages), true)
+	embed.field("# of Commands Run", strconv.Itoa(statsCommandsRun), true)
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+	elapsed := time.Since(startTime).String()
+	embed.field("Tot.Alloc.", fmt.Sprintf("%v MiB", bytesToMegabytes(mem.TotalAlloc)), true)
+	embed.field("Sys.Alloc.", fmt.Sprintf("%v MiB", bytesToMegabytes(mem.Sys)), true)
+	embed.field("Uptime", elapsed, true)
+	s.InteractionRespond(i.Interaction, respondEmbed(embed, true))
 }
 
 // Helper variables.

@@ -21,3 +21,8 @@ func hexToRgb(hex uint64) (uint8, uint8, uint8) {
 	b := uint8(hex & 0xFF)
 	return r, g, b
 }
+
+// Convert bytes to megabytes.
+func bytesToMegabytes(b uint64) uint64 {
+	return b / 1024 / 1024
+}
