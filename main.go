@@ -78,5 +78,6 @@ func loadHttp() error {
 	http.HandleFunc("/interact", httpInteract)
 	http.HandleFunc("/register", httpRegister)
 	http.HandleFunc("/unregister", httpUnregister)
+	http.HandleFunc("/invalidate", httpInvalidate)
 	return http.ListenAndServe(":8080", nil)
 }
