@@ -13,6 +13,7 @@ type commandOption = discordgo.ApplicationCommandInteractionDataOption
 
 // All commands are specified here.
 var commands = []*command{
+	// Utility commands.
 	{
 		appCommand: &discordgo.ApplicationCommand{
 			Name:        "convert",
@@ -88,6 +89,56 @@ var commands = []*command{
 		},
 		handler: handleStats,
 	},
+	// Developer commands.
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "kill",
+			Description: "Kills and restarts specific services/shards.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "services",
+					Description: "Kills and restarts a specific Arraybot service.",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "name",
+							Description: "The name of the service.",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Carbon (Web Panel)",
+									Value: "carbon",
+								},
+								{
+									Name:  "Mantis (Gateway Handler)",
+									Value: "mantis",
+								},
+								{
+									Name:  "Nautilus (Command Engine)",
+									Value: "nautilus",
+								},
+							},
+							Required: true,
+						},
+					},
+				},
+				{
+					Name:        "shard",
+					Description: "Kills and restarts a specific gateway shard.",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "shard",
+							Description: "The ID of the shard.",
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Required:    true,
+						},
+					},
+				},
+			},
+		},
+		handler: handleKill,
+	},
 }
 
 // Invokes a subcommand with the arguments if it matches the given name.
@@ -114,3 +165,21 @@ func commandGet2(o []*commandOption, s string) *commandOption {
 	}
 	return nil
 }
+
+// Whether or not the command executor has permission to execute developer commands.
+func commandPermissionDeveloper(i *discordgo.InteractionCreate) bool {
+	for _, a := range admins {
+		if i.User != nil && i.User.ID == a {
+			return true
+		}
+		if i.Member != nil && i.Member.User.ID == a {
+			return true
+		}
+	}
+	return false
+}
+
+// Helper variables.
+var permissionDenyDeveloper = "You need to be an Arraybot authorized developer to execute this command."
+var permissionDenyModerator = "You need to be set as a server moderator to execute this command."
+var permissionDenyPermission = "You do not have the required Discord permission to execute this command."

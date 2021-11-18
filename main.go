@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -12,12 +13,14 @@ import (
 var client *discordgo.Session
 var token string
 var server string
+var admins []string
 var startTime time.Time
 
 // Reads the internal Arraybot token as well as the server ID.
 func init() {
 	token = os.Getenv("AUTH_TOKEN")
 	server = os.Getenv("SERVER")
+	admins = strings.Split(os.Getenv("ADMINS"), ";")
 	startTime = time.Now()
 }
 

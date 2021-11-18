@@ -20,3 +20,4 @@ These are the environment variables required to run the application properly:
 * `APP_ID`: the application's ID
 * `PUBKEY`: the application's public key
 * `SERVER`: the development server's ID, blank for production
+* `ADMINS`: a semicolon separated list of admin user IDs
