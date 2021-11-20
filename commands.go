@@ -256,6 +256,17 @@ func commandPermissionDeveloper(i *discordgo.InteractionCreate) bool {
 	return false
 }
 
+// Whether or not the command executor has the moderator role.
+func commandPermissionModerator(i *discordgo.InteractionCreate) bool {
+	mod := databaseModerator(i.GuildID)
+	for _, role := range i.Member.Roles {
+		if role == mod {
+			return true
+		}
+	}
+	return false
+}
+
 // Helper variables.
 var permissionDenyDeveloper = "You need to be an Arraybot authorized developer to execute this command."
 var permissionDenyModerator = "You need to be set as a server moderator to execute this command."
