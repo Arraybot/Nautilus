@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +11,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+var flagRegister bool
+var flagProduction bool
 var client *discordgo.Session
+var appId string
 var token string
 var server string
 var admins []string
@@ -18,8 +22,14 @@ var startTime time.Time
 
 // Reads the internal Arraybot token as well as the server ID.
 func init() {
+	// Parse the runtime flags.
+	flag.BoolVar(&flagRegister, "register", false, "Whether to re-register all commands")
+	flag.BoolVar(&flagProduction, "prod", false, "Whether to run in production mode")
+	flag.Parse()
+	// Parse the environment variables.
+	appId = os.Getenv("APP_ID")
 	token = os.Getenv("AUTH_TOKEN")
-	server = os.Getenv("SERVER")
+	server = os.Getenv("DEV_SERVER")
 	admins = strings.Split(os.Getenv("ADMINS"), ";")
 	startTime = time.Now()
 }
@@ -61,22 +71,33 @@ func loadBot(dev bool) error {
 	if err != nil {
 		return err
 	}
-	if dev {
-		log.Println("Using WebSocket events.")
-		// Use gateway based slash command handling.
-		client.AddHandler(slashDistributor)
-		// Register base slash commands to Discord.
-		for _, command := range commands {
-			log.Printf("Registering command %s.\n", command.appCommand.Name)
-			_, err = client.ApplicationCommandCreate(os.Getenv("APP_ID"), server, command.appCommand)
-			if err != nil {
-				log.Println(err)
-				return err
-			}
+	// Check which mode we are running in.
+	if flagProduction {
+		log.Println("Using production mode; using REST interactions")
+		// Check if we need to re-register commands.
+		if flagRegister {
+			log.Panicln("Force re-register global commands")
+			commandsRegister(func(ac *discordgo.ApplicationCommand) error {
+				_, err2 := client.ApplicationCommandCreate(appId, "", ac)
+				return err2
+			})
 		}
+		return nil
+	} else {
+		log.Println("Using non-production mode; falling back to WebSocket events")
+		// We are in development mode, so the gateway based slash command handler should be used.
+		client.AddHandler(slashDistributor)
+		// Check if we need to re-register commands.
+		if flagRegister {
+			log.Printf("Force re-register guild (%s) commands\n", appId)
+			commandsRegister(func(ac *discordgo.ApplicationCommand) error {
+				_, err2 := client.ApplicationCommandCreate(appId, server, ac)
+				return err2
+			})
+		}
+		// Establish WS connection.
 		return client.Open()
 	}
-	return nil
 }
 
 // Loads the HTTP server.

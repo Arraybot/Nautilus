@@ -19,5 +19,5 @@ These are the environment variables required to run the application properly:
 * `BOT_TOKEN`: the application's bot's token
 * `APP_ID`: the application's ID
 * `PUBKEY`: the application's public key
-* `SERVER`: the development server's ID, blank for production
+* `DEV_SERVER`: the development server's ID, can be blank in production
 * `ADMINS`: a semicolon separated list of admin user IDs

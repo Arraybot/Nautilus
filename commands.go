@@ -1,6 +1,10 @@
 package main
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"log"
+
+	"github.com/bwmarrin/discordgo"
+)
 
 // command is a wrapper for a slash command and its handler.
 type command struct {
@@ -139,6 +143,16 @@ var commands = []*command{
 		},
 		handler: handleKill,
 	},
+}
+
+// Registers all commands.
+func commandsRegister(registrar func(*discordgo.ApplicationCommand) error) {
+	for _, command := range commands {
+		log.Printf("Registering command %s.\n", command.appCommand.Name)
+		if err := registrar(command.appCommand); err != nil {
+			log.Println(err)
+		}
+	}
 }
 
 // Invokes a subcommand with the arguments if it matches the given name.
