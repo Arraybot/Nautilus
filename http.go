@@ -1,6 +1,21 @@
 package main
 
-import "net/http"
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"time"
+)
+
+type panelHealth struct {
+	Connections int `json:"connected"`
+}
+
+var httpClient = http.Client{
+	Timeout: 1 * time.Second,
+}
 
 // The endpoint that Discord calls when there is an interaction.
 func httpInteract(w http.ResponseWriter, req *http.Request) {
@@ -57,4 +72,33 @@ func handleAuthorization(w http.ResponseWriter, req *http.Request) bool {
 		return false
 	}
 	return true
+}
+
+// Gets the panel's health.
+func requestPanelHealth() (*panelHealth, error) {
+	url := fmt.Sprintf("%s://%s:%s", os.Getenv("SCHEME_MONITOR"), os.Getenv("HOST_MONITOR"), os.Getenv("PORT_MONITOR"))
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	var result panelHealth
+	err = json.Unmarshal(body, &result)
+	return &result, err
+}
+
+// Requests to kill the panel.
+func requestPanelKill() error {
+	url := fmt.Sprintf("%s://%s:%s", os.Getenv("SCHEME_MONITOR"), os.Getenv("HOST_MONITOR"), os.Getenv("PORT_MONITOR"))
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+	if _, err := httpClient.Do(req); err != nil {
+		return err
+	}
+	return nil
 }

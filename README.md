@@ -20,3 +20,7 @@ These are the environment variables required to run the application properly:
 * `APP_PUBKEY`: The application's public key
 * `BOT_TOKEN`: The application's bot's token
 * `DEV_SERVER`: The development server's ID, can be blank or missing in production
+* `HOST_MONITOR`: The monitor API's hostname
+* `PORT_COMMANDS`: The command handler's port
+* `PORT_MONITOR`: The monitor API's port
+* `SCHEME_MONITOR`: The monitor API's scheme

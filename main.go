@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +19,7 @@ var appId string
 var token string
 var server string
 var admins []string
+var port string
 var startTime time.Time
 
 // Reads the internal Arraybot token as well as the server ID.
@@ -30,6 +32,7 @@ func init() {
 	admins = strings.Split(os.Getenv("ADMINS"), ";")
 	appId = os.Getenv("APP_ID")
 	server = os.Getenv("DEV_SERVER")
+	port = os.Getenv("PORT_COMMANDS")
 	startTime = time.Now()
 }
 
@@ -105,5 +108,5 @@ func loadHttp() error {
 	http.HandleFunc("/register", httpRegister)
 	http.HandleFunc("/unregister", httpUnregister)
 	http.HandleFunc("/invalidate", httpInvalidate)
-	return http.ListenAndServe(":8080", nil)
+	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }

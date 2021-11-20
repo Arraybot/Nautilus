@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"strings"
 
@@ -20,7 +21,15 @@ func handleKill(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		switch strings.ToLower(n) {
 		case "carbon":
 			// Restart the panel.
-			s.InteractionRespond(i.Interaction, respondText("Restarting Carbon...", i))
+			var response string
+			err := requestPanelKill()
+			if err == nil {
+				response = "Carbon terminating..."
+			} else {
+				log.Println(err)
+				response = "Could not send termination request. Please attempt to do so manually."
+			}
+			s.InteractionRespond(i.Interaction, respondText(response, i))
 		case "nautilus":
 			// Restart the command handler.
 			s.InteractionRespond(i.Interaction, respondText("Restarting Nautilus...", i))

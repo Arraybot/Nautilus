@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -95,7 +96,19 @@ func handleInvite(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // The ping command.
 // Will just respond with a message.
 func handlePing(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	s.InteractionRespond(i.Interaction, respondText("Pong! Command handler online and responsive.", i))
+	var healthString string
+	if commandPermissionDeveloper(i) {
+		health, err := requestPanelHealth()
+		if err == nil {
+			healthString = fmt.Sprintf("Panel handling %d concurrent connections.", health.Connections)
+		} else {
+			healthString = "Panel unreachable."
+			log.Println(err)
+		}
+	} else {
+		healthString = ""
+	}
+	s.InteractionRespond(i.Interaction, respondText("Pong! Command handler online and responsive. "+healthString, i))
 }
 
 // The stats command.
