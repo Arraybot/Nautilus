@@ -14,6 +14,7 @@ import (
 
 var flagRegister bool
 var flagProduction bool
+var flagNoServe bool
 var client *discordgo.Session
 var appId string
 var token string
@@ -27,6 +28,7 @@ func init() {
 	// Parse the runtime flags.
 	flag.BoolVar(&flagRegister, "register", false, "Whether to re-register all commands")
 	flag.BoolVar(&flagProduction, "prod", false, "Whether to run in production mode")
+	flag.BoolVar(&flagNoServe, "noserve", false, "Whether to only register commands (if enabled) and nothing else")
 	flag.Parse()
 	// Parse the environment variables.
 	admins = strings.Split(os.Getenv("ADMINS"), ";")
@@ -40,21 +42,26 @@ func init() {
 // Starts the application.
 func main() {
 	log.Println("Nautilus starting...")
-	// First load the database.
-	err := loadDatabase()
-	if err != nil {
-		log.Fatal(err)
+	if !flagNoServe {
+		// First load the database.
+		log.Println("Establishing database connection")
+		err := loadDatabase()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	// Then load the bot.
-	err = loadBot(server != "")
+	err := loadBot()
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Lastly, boot up the HTTP server.
-	log.Println("Listening...")
-	err = loadHttp()
-	if err != nil {
-		log.Fatal(err)
+	if !flagNoServe {
+		// Lastly, boot up the HTTP server.
+		log.Println("Listening...")
+		err = loadHttp()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -66,7 +73,7 @@ func loadDatabase() error {
 // Loads the bot.
 // This also connects to the gateway if development mode is enabled.
 // This is because the endpoint can't be served in development mode.
-func loadBot(dev bool) error {
+func loadBot() error {
 	var err error
 	// Create the client.
 	client, err = discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
@@ -96,6 +103,11 @@ func loadBot(dev bool) error {
 				_, err2 := client.ApplicationCommandCreate(appId, server, ac)
 				return err2
 			})
+		}
+		// If we don't want to serve, skip opening connection.
+		if flagNoServe {
+			log.Println("Not connecting to WebSocket as configured")
+			return nil
 		}
 		// Establish WS connection.
 		return client.Open()
