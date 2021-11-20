@@ -6,12 +6,25 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sort"
 	"time"
 )
 
 // A wrapper for the panel health.
 type panelHealth struct {
 	Connections int `json:"connected"`
+}
+
+// A wrapper for the urban dictionary result.
+type urbanResult struct {
+	List []*urbanDefinition `json:"list"`
+}
+
+// A wrapper for urban dictionary definitions.
+type urbanDefinition struct {
+	Description string `json:"definition"`
+	Upvotes     int    `json:"thumbs_up"`
+	Downvotes   int    `json:"thumbs_down"`
 }
 
 // An interface for pet links.
@@ -154,4 +167,30 @@ func requestPet(target pet) (string, error) {
 		return "", err
 	}
 	return target.link(), nil
+}
+
+// Gets the top urban dictionary definition.
+func requestUrban(p string) (*urbanDefinition, error) {
+	url := fmt.Sprintf("http://api.urbandictionary.com/v0/define?term=%s", p)
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	var result urbanResult
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, err
+	}
+	definitions := result.List[:]
+	if len(definitions) == 0 {
+		return nil, nil
+	}
+	sort.Slice(definitions, func(a, b int) bool {
+		return definitions[a].Upvotes > definitions[b].Upvotes
+	})
+	return definitions[0], nil
 }

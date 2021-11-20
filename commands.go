@@ -82,6 +82,36 @@ var commands = []*command{
 		},
 		handler: handleDog,
 	},
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "8ball",
+			Description: "Decides your fate.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "question",
+					Description: "A yes/no question you would like to ask.",
+					Type:        discordgo.ApplicationCommandOptionString,
+					Required:    true,
+				},
+			},
+		},
+		handler: handleEightBall,
+	},
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "urban",
+			Description: "Looks up a phrase in the Urban Dictionary",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "phrase",
+					Description: "The phrase to look up",
+					Type:        discordgo.ApplicationCommandOptionString,
+					Required:    true,
+				},
+			},
+		},
+		handler: handleUrban,
+	},
 	// Utility commands.
 	{
 		appCommand: &discordgo.ApplicationCommand{
