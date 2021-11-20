@@ -22,7 +22,7 @@ var admins []string
 var port string
 var startTime time.Time
 
-// Reads the internal Arraybot token as well as the server ID.
+// Reads the config.
 func init() {
 	// Parse the runtime flags.
 	flag.BoolVar(&flagRegister, "register", false, "Whether to re-register all commands")
@@ -31,15 +31,15 @@ func init() {
 	// Parse the environment variables.
 	admins = strings.Split(os.Getenv("ADMINS"), ";")
 	appId = os.Getenv("APP_ID")
-	server = os.Getenv("DEV_SERVER")
+	server = os.Getenv("SERVER")
 	port = os.Getenv("PORT_COMMANDS")
+	token = os.Getenv("COMMANDS_SECRET")
 	startTime = time.Now()
 }
 
 // Starts the application.
 func main() {
 	log.Println("Nautilus starting...")
-	log.Printf("Token %s.\n", token)
 	// First load the database.
 	err := loadDatabase()
 	if err != nil {
@@ -91,7 +91,7 @@ func loadBot(dev bool) error {
 		client.AddHandler(slashDistributor)
 		// Check if we need to re-register commands.
 		if flagRegister {
-			log.Printf("Force re-register guild (%s) commands\n", appId)
+			log.Printf("Force re-register guild (%s) commands\n", server)
 			commandsRegister(func(ac *discordgo.ApplicationCommand) error {
 				_, err2 := client.ApplicationCommandCreate(appId, server, ac)
 				return err2

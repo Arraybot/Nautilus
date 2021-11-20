@@ -17,6 +17,71 @@ type commandOption = discordgo.ApplicationCommandInteractionDataOption
 
 // All commands are specified here.
 var commands = []*command{
+	// Developer commands.
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "kill",
+			Description: "Kills and restarts specific services/shards.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "services",
+					Description: "Kills and restarts a specific Arraybot service.",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "name",
+							Description: "The name of the service.",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Carbon (Web Panel)",
+									Value: "carbon",
+								},
+								{
+									Name:  "Mantis (Gateway Handler)",
+									Value: "mantis",
+								},
+								{
+									Name:  "Nautilus (Command Engine)",
+									Value: "nautilus",
+								},
+							},
+							Required: true,
+						},
+					},
+				},
+				{
+					Name:        "shard",
+					Description: "Kills and restarts a specific gateway shard.",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "shard",
+							Description: "The ID of the shard.",
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Required:    true,
+						},
+					},
+				},
+			},
+		},
+		handler: handleKill,
+	},
+	// Fun commands.
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "cat",
+			Description: "Sends a random cat image/GIF/video.",
+		},
+		handler: handleCat,
+	},
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "dog",
+			Description: "Sends a random dog image/GIF/video.",
+		},
+		handler: handleDog,
+	},
 	// Utility commands.
 	{
 		appCommand: &discordgo.ApplicationCommand{
@@ -93,62 +158,12 @@ var commands = []*command{
 		},
 		handler: handleStats,
 	},
-	// Developer commands.
-	{
-		appCommand: &discordgo.ApplicationCommand{
-			Name:        "kill",
-			Description: "Kills and restarts specific services/shards.",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Name:        "services",
-					Description: "Kills and restarts a specific Arraybot service.",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
-							Name:        "name",
-							Description: "The name of the service.",
-							Type:        discordgo.ApplicationCommandOptionString,
-							Choices: []*discordgo.ApplicationCommandOptionChoice{
-								{
-									Name:  "Carbon (Web Panel)",
-									Value: "carbon",
-								},
-								{
-									Name:  "Mantis (Gateway Handler)",
-									Value: "mantis",
-								},
-								{
-									Name:  "Nautilus (Command Engine)",
-									Value: "nautilus",
-								},
-							},
-							Required: true,
-						},
-					},
-				},
-				{
-					Name:        "shard",
-					Description: "Kills and restarts a specific gateway shard.",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
-							Name:        "shard",
-							Description: "The ID of the shard.",
-							Type:        discordgo.ApplicationCommandOptionInteger,
-							Required:    true,
-						},
-					},
-				},
-			},
-		},
-		handler: handleKill,
-	},
 }
 
 // Registers all commands.
 func commandsRegister(registrar func(*discordgo.ApplicationCommand) error) {
 	for _, command := range commands {
-		log.Printf("Registering command %s.\n", command.appCommand.Name)
+		log.Printf("Registering command %s\n", command.appCommand.Name)
 		if err := registrar(command.appCommand); err != nil {
 			log.Println(err)
 		}

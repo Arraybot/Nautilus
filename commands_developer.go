@@ -20,7 +20,7 @@ func handleKill(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		n := commandGet2(o, "name").StringValue()
 		switch strings.ToLower(n) {
 		case "carbon":
-			// Restart the panel.
+			// Kill the web panel.
 			var response string
 			err := requestPanelKill()
 			if err == nil {
@@ -31,12 +31,12 @@ func handleKill(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			}
 			s.InteractionRespond(i.Interaction, respondText(response, i))
 		case "nautilus":
-			// Restart the command handler.
-			s.InteractionRespond(i.Interaction, respondText("Restarting Nautilus...", i))
+			// Kill the command handler.
+			s.InteractionRespond(i.Interaction, respondText("Nautilus terminating...", i))
 			os.Exit(0)
 		case "mantis":
-			// TODO: Restart the listener.
-			s.InteractionRespond(i.Interaction, respondText("Restarting Mantis...", i))
+			// Kill the gateway listener.
+			s.InteractionRespond(i.Interaction, respondText("Mantis terminating...", i))
 		default:
 			s.InteractionRespond(i.Interaction, respondText("Unknown service.", i))
 		}
