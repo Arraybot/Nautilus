@@ -56,7 +56,11 @@ func slashDistributor(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	for _, command := range commands {
 		if command.appCommand.Name == name {
 			log.Printf("User %s invoked command %s in %s.\n", i.Interaction.Member.User.ID, name, i.Interaction.GuildID)
-			command.handler(s, i)
+			if !commandDisabled(i.GuildID, name) {
+				command.handler(s, i)
+			} else {
+				s.InteractionRespond(i.Interaction, respondText("This command has been disabled by the/a server administrator(s).", i))
+			}
 		}
 	}
 }

@@ -100,17 +100,25 @@ var commands = []*command{
 	{
 		appCommand: &discordgo.ApplicationCommand{
 			Name:        "urban",
-			Description: "Looks up a phrase in the Urban Dictionary",
+			Description: "Looks up a phrase in the Urban Dictionary.",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "phrase",
-					Description: "The phrase to look up",
+					Description: "The phrase to look up.",
 					Type:        discordgo.ApplicationCommandOptionString,
 					Required:    true,
 				},
 			},
 		},
 		handler: handleUrban,
+	},
+	// Server commands.
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "guide",
+			Description: "Shows instructions on how to use the server and/or bot.",
+		},
+		handler: handlerGuide,
 	},
 	// Utility commands.
 	{
@@ -198,6 +206,16 @@ func commandsRegister(registrar func(*discordgo.ApplicationCommand) error) {
 			log.Println(err)
 		}
 	}
+}
+
+// Whether a command is disabled.
+func commandDisabled(server, name string) bool {
+	for _, disabled := range databaseDisabled(server) {
+		if disabled == name {
+			return true
+		}
+	}
+	return false
 }
 
 // Invokes a subcommand with the arguments if it matches the given name.

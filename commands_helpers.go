@@ -52,8 +52,7 @@ func (t *ttlCache) invalidate(k string) {
 var cacheInvisibility = ttlCache{
 	m: make(map[string]*ttlItem),
 	f: func(k string) bool {
-		// TODO: implement.
-		return true
+		return databaseReplyHidden(k)
 	},
 	i: 600 * 1000,
 }
