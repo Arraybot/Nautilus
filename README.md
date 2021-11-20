@@ -1,4 +1,4 @@
-# Arraybot: Nautlius
+# Arraybot: Nautilus
 
 Nautilus handles all command execution for [Arraybot](https://github.com/Arraying/Arraybot).
 
