@@ -27,10 +27,9 @@ func init() {
 	flag.BoolVar(&flagProduction, "prod", false, "Whether to run in production mode")
 	flag.Parse()
 	// Parse the environment variables.
-	appId = os.Getenv("APP_ID")
-	token = os.Getenv("AUTH_TOKEN")
-	server = os.Getenv("DEV_SERVER")
 	admins = strings.Split(os.Getenv("ADMINS"), ";")
+	appId = os.Getenv("APP_ID")
+	server = os.Getenv("DEV_SERVER")
 	startTime = time.Now()
 }
 

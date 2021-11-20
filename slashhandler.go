@@ -15,7 +15,7 @@ import (
 // Handles incoming (HTTP) interactions.
 func slashHandler(w http.ResponseWriter, req *http.Request) {
 	// First, get the public key.
-	pubKey := os.Getenv("PUBKEY")
+	pubKey := os.Getenv("APP_PUBKEY")
 	keyBytes, err := hex.DecodeString(pubKey)
 	if err != nil {
 		slashEndpointError(w, err)
