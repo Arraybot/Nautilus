@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
-	"time"
 
+	"github.com/arraybot/nautilus/commands"
+	"github.com/arraybot/nautilus/config"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -16,12 +16,6 @@ var flagRegister bool
 var flagProduction bool
 var flagNoServe bool
 var client *discordgo.Session
-var appId string
-var token string
-var server string
-var admins []string
-var port string
-var startTime time.Time
 
 // Reads the config.
 func init() {
@@ -31,12 +25,7 @@ func init() {
 	flag.BoolVar(&flagNoServe, "noserve", false, "Whether to only register commands (if enabled) and nothing else")
 	flag.Parse()
 	// Parse the environment variables.
-	admins = strings.Split(os.Getenv("ADMINS"), ";")
-	appId = os.Getenv("APP_ID")
-	server = os.Getenv("SERVER")
-	port = os.Getenv("PORT_COMMANDS")
-	token = os.Getenv("COMMANDS_SECRET")
-	startTime = time.Now()
+	config.Load()
 }
 
 // Starts the application.
@@ -80,13 +69,15 @@ func loadBot() error {
 	if err != nil {
 		return err
 	}
+	appId := config.AppID
+	server := config.DevServer
 	// Check which mode we are running in.
 	if flagProduction {
 		log.Println("Using production mode; using REST interactions")
 		// Check if we need to re-register commands.
 		if flagRegister {
-			log.Panicln("Force re-register global commands")
-			commandsRegister(func(ac *discordgo.ApplicationCommand) error {
+			log.Println("Force re-register global commands")
+			commands.Register(func(ac *discordgo.ApplicationCommand) error {
 				_, err2 := client.ApplicationCommandCreate(appId, "", ac)
 				return err2
 			})
@@ -95,11 +86,11 @@ func loadBot() error {
 	} else {
 		log.Println("Using non-production mode; falling back to WebSocket events")
 		// We are in development mode, so the gateway based slash command handler should be used.
-		client.AddHandler(slashDistributor)
+		client.AddHandler(commands.Distributor)
 		// Check if we need to re-register commands.
 		if flagRegister {
 			log.Printf("Force re-register guild (%s) commands\n", server)
-			commandsRegister(func(ac *discordgo.ApplicationCommand) error {
+			commands.Register(func(ac *discordgo.ApplicationCommand) error {
 				_, err2 := client.ApplicationCommandCreate(appId, server, ac)
 				return err2
 			})
@@ -116,9 +107,9 @@ func loadBot() error {
 
 // Loads the HTTP server.
 func loadHttp() error {
-	http.HandleFunc("/interact", httpInteract)
-	http.HandleFunc("/register", httpRegister)
-	http.HandleFunc("/unregister", httpUnregister)
-	http.HandleFunc("/invalidate", httpInvalidate)
-	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	http.HandleFunc("/interact", epInteract)
+	http.HandleFunc("/register", epRegister)
+	http.HandleFunc("/unregister", epUnregister)
+	http.HandleFunc("/invalidate", epInvalidate)
+	return http.ListenAndServe(fmt.Sprintf(":%s", config.PortCommands), nil)
 }

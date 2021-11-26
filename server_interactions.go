@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/arraybot/nautilus/commands"
 	"github.com/bsdlp/discord-interactions-go/interactions"
 	"github.com/bwmarrin/discordgo"
 )
@@ -18,7 +19,7 @@ func slashHandler(w http.ResponseWriter, req *http.Request) {
 	pubKey := os.Getenv("APP_PUBKEY")
 	keyBytes, err := hex.DecodeString(pubKey)
 	if err != nil {
-		slashEndpointError(w, err)
+		endpointError(w, err)
 		return
 	}
 	// Check if the signature matches.
@@ -33,40 +34,24 @@ func slashHandler(w http.ResponseWriter, req *http.Request) {
 	var data discordgo.InteractionCreate
 	err = json.NewDecoder(req.Body).Decode(&data)
 	if err != nil {
-		slashEndpointError(w, err)
+		endpointError(w, err)
 		return
 	}
 	// Check if it's a ping, if so, just respond.
 	if data.Type == discordgo.InteractionPing {
 		_, err := w.Write([]byte(`{"type":1}`))
 		if err != nil {
-			slashEndpointError(w, err)
+			endpointError(w, err)
 		}
 		log.Println("Responded to Discord ping.")
 		return
 	}
 	// If not a ping, it is a command. Handle appropriately.
-	slashDistributor(client, &data)
-}
-
-// Common function between REST and WebSocket.
-// This will call the correct command handler corresponding to the command name.
-func slashDistributor(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	name := i.ApplicationCommandData().Name
-	for _, command := range commands {
-		if command.appCommand.Name == name {
-			log.Printf("User %s invoked command %s in %s.\n", i.Interaction.Member.User.ID, name, i.Interaction.GuildID)
-			if !commandDisabled(i.GuildID, name) {
-				command.handler(s, i)
-			} else {
-				s.InteractionRespond(i.Interaction, respondText("This command has been disabled by the/a server administrator(s).", i))
-			}
-		}
-	}
+	commands.Distributor(client, &data)
 }
 
 // Helper method to write a server error in the HTTP response.
-func slashEndpointError(w http.ResponseWriter, err error) {
+func endpointError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 	log.Println(err)
 }

@@ -1,4 +1,4 @@
-package main
+package commands
 
 // Convert RGB values to integer.
 func rgbToHex(r, g, b uint32) uint32 {

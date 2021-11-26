@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/arraybot/nautilus/config"
+	"github.com/arraybot/nautilus/requests"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -15,11 +17,11 @@ import (
 // Will respond with a fancy embed.
 func handleConvert(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	o := i.ApplicationCommandData().Options
-	commandWhen(o, "hex", func(o []*commandOption) {
+	sub(o, "hex", func(o []*commandOption) {
 		// These values will strategically underflow and cause values > 255.
-		r := uint32(commandGet2(o, "red").IntValue())
-		g := uint32(commandGet2(o, "green").IntValue())
-		b := uint32(commandGet2(o, "blue").IntValue())
+		r := uint32(option(o, "red").IntValue())
+		g := uint32(option(o, "green").IntValue())
+		b := uint32(option(o, "blue").IntValue())
 		// Check if the input range is valid.
 		if r > 255 || g > 255 || b > 255 {
 			s.InteractionRespond(i.Interaction, respondText("Invalid values for at least one colour (out of range, [0-255]).", i))
@@ -30,28 +32,26 @@ func handleConvert(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		embed.field("Result", result, false)
 		s.InteractionRespond(i.Interaction, respondEmbed(embed, i))
 	})
-	commandWhen(o, "rgb", func(o []*commandOption) {
-		commandGet1(o, "colour", func(o *commandOption) {
-			raw := o.StringValue()
-			// Ensure it matches the regular expression.
-			if !hexMatchRegex.MatchString(raw) {
-				s.InteractionRespond(i.Interaction, respondText("Invalid hex code provided (format unknown).", i))
-				return
-			}
-			// Extract all the non-hex characters.
-			parsed := hexReplaceRegex.ReplaceAllString(raw, "")
-			hex, err := strconv.ParseUint(parsed, 16, 32)
-			if err != nil {
-				s.InteractionRespond(i.Interaction, respondText("Invalid hex code provided (out of range).", i))
-				return
-			}
-			r, g, b := hexToRgb(hex)
-			// Format into nice output.
-			result := fmt.Sprintf("R: %d, G: %d, B: %d", r, g, b)
-			embed := embed()
-			embed.field("Result", result, false)
-			s.InteractionRespond(i.Interaction, respondEmbed(embed, i))
-		})
+	sub(o, "rgb", func(o []*commandOption) {
+		raw := option(o, "colour").StringValue()
+		// Ensure it matches the regular expression.
+		if !hexMatchRegex.MatchString(raw) {
+			s.InteractionRespond(i.Interaction, respondText("Invalid hex code provided (format unknown).", i))
+			return
+		}
+		// Extract all the non-hex characters.
+		parsed := hexReplaceRegex.ReplaceAllString(raw, "")
+		hex, err := strconv.ParseUint(parsed, 16, 32)
+		if err != nil {
+			s.InteractionRespond(i.Interaction, respondText("Invalid hex code provided (out of range).", i))
+			return
+		}
+		r, g, b := hexToRgb(hex)
+		// Format into nice output.
+		result := fmt.Sprintf("R: %d, G: %d, B: %d", r, g, b)
+		embed := embed()
+		embed.field("Result", result, false)
+		s.InteractionRespond(i.Interaction, respondEmbed(embed, i))
 	})
 }
 
@@ -97,8 +97,8 @@ func handleInvite(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // Will just respond with a message.
 func handlePing(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var healthString string
-	if commandPermissionDeveloper(i) {
-		health, err := requestPanelHealth()
+	if hasDeveloper(i) {
+		health, err := requests.PanelHealthcheck()
 		if err == nil {
 			healthString = fmt.Sprintf("Panel handling %d concurrent connections.", health.Connections)
 		} else {
@@ -125,7 +125,7 @@ func handleStats(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed.field("# of Commands Run", strconv.Itoa(statsCommandsRun), true)
 	var mem runtime.MemStats
 	runtime.ReadMemStats(&mem)
-	elapsed := time.Since(startTime).String()
+	elapsed := time.Since(config.StartTime).String()
 	embed.field("Tot.Alloc.", fmt.Sprintf("%v MiB", bytesToMegabytes(mem.TotalAlloc)), true)
 	embed.field("Sys.Alloc.", fmt.Sprintf("%v MiB", bytesToMegabytes(mem.Sys)), true)
 	embed.field("Uptime", elapsed, true)

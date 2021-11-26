@@ -1,8 +1,11 @@
-package main
+package commands
 
 import (
 	"log"
+	"os"
+	"strings"
 
+	"github.com/arraybot/nautilus/database"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -14,6 +17,8 @@ type command struct {
 
 // commandType is a type alias.
 type commandOption = discordgo.ApplicationCommandInteractionDataOption
+
+var admins = strings.Split(os.Getenv("ADMINS"), ";")
 
 // All commands are specified here.
 var commands = []*command{
@@ -198,8 +203,8 @@ var commands = []*command{
 	},
 }
 
-// Registers all commands.
-func commandsRegister(registrar func(*discordgo.ApplicationCommand) error) {
+// Register registers all commands.
+func Register(registrar func(*discordgo.ApplicationCommand) error) {
 	for _, command := range commands {
 		log.Printf("Registering command %s\n", command.appCommand.Name)
 		if err := registrar(command.appCommand); err != nil {
@@ -208,9 +213,25 @@ func commandsRegister(registrar func(*discordgo.ApplicationCommand) error) {
 	}
 }
 
+// Distributor is a common function between REST and WebSocket.
+// This will call the correct command handler corresponding to the command name.
+func Distributor(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	name := i.ApplicationCommandData().Name
+	for _, command := range commands {
+		if command.appCommand.Name == name {
+			log.Printf("User %s invoked command %s in %s.\n", i.Interaction.Member.User.ID, name, i.Interaction.GuildID)
+			if !disabled(i.GuildID, name) {
+				command.handler(s, i)
+			} else {
+				s.InteractionRespond(i.Interaction, respondText("This command has been disabled by the/a server administrator(s).", i))
+			}
+		}
+	}
+}
+
 // Whether a command is disabled.
-func commandDisabled(server, name string) bool {
-	for _, disabled := range databaseDisabled(server) {
+func disabled(server, name string) bool {
+	for _, disabled := range database.Disabled(server) {
 		if disabled == name {
 			return true
 		}
@@ -219,7 +240,7 @@ func commandDisabled(server, name string) bool {
 }
 
 // Invokes a subcommand with the arguments if it matches the given name.
-func commandWhen(o []*commandOption, s string, do func([]*commandOption)) {
+func sub(o []*commandOption, s string, do func([]*commandOption)) {
 	for _, opt := range o {
 		if opt.Name == s {
 			do(opt.Options)
@@ -228,13 +249,8 @@ func commandWhen(o []*commandOption, s string, do func([]*commandOption)) {
 	}
 }
 
-// Invokes a function with an option if it matches the given name.
-func commandGet1(o []*commandOption, s string, do func(*commandOption)) {
-	do(commandGet2(o, s))
-}
-
 // Gets an option value if it matches the given name.
-func commandGet2(o []*commandOption, s string) *commandOption {
+func option(o []*commandOption, s string) *commandOption {
 	for _, opt := range o {
 		if opt.Name == s {
 			return opt
@@ -244,7 +260,7 @@ func commandGet2(o []*commandOption, s string) *commandOption {
 }
 
 // Whether or not the command executor has permission to execute developer commands.
-func commandPermissionDeveloper(i *discordgo.InteractionCreate) bool {
+func hasDeveloper(i *discordgo.InteractionCreate) bool {
 	for _, a := range admins {
 		if i.User != nil && i.User.ID == a {
 			return true
@@ -257,8 +273,8 @@ func commandPermissionDeveloper(i *discordgo.InteractionCreate) bool {
 }
 
 // Whether or not the command executor has the moderator role.
-func commandPermissionModerator(i *discordgo.InteractionCreate) bool {
-	mod := databaseModerator(i.GuildID)
+func hasModerator(i *discordgo.InteractionCreate) bool {
+	mod := database.Moderator(i.GuildID)
 	for _, role := range i.Member.Roles {
 		if role == mod {
 			return true

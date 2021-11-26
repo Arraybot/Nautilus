@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/arraybot/nautilus/requests"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -20,8 +21,8 @@ var eightballResponses = []string{
 // The cat command.
 // Sends a link to a cute cat.
 func handleCat(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	cat := cat{}
-	link, err := requestPet(&cat)
+	cat := requests.Cat{}
+	link, err := requests.PetOnDemand(&cat)
 	var toSend string
 	if err == nil {
 		toSend = link
@@ -35,8 +36,8 @@ func handleCat(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // The dog command.
 // Sends a link to a cute dog.
 func handleDog(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	dog := dog{}
-	link, err := requestPet(&dog)
+	dog := requests.Dog{}
+	link, err := requests.PetOnDemand(&dog)
 	var toSend string
 	if err == nil {
 		toSend = link
@@ -51,7 +52,7 @@ func handleDog(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // Repeats the user input and gives its opinion on it.
 func handleEightBall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// Get the question.
-	q := commandGet2(i.ApplicationCommandData().Options, "question")
+	q := option(i.ApplicationCommandData().Options, "question")
 	// Truncate if it is really long.
 	str := q.StringValue()
 	if len(str) > 1024 {
@@ -64,10 +65,10 @@ func handleEightBall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // The urban command.
 // Looks up the given phrase in the Urban Dictionary and returns the definition.
 func handleUrban(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	p := commandGet2(i.ApplicationCommandData().Options, "phrase")
+	p := option(i.ApplicationCommandData().Options, "phrase")
 	str := url.QueryEscape(p.StringValue())
 	var toSend string
-	definition, err := requestUrban(str)
+	definition, err := requests.Urban(str)
 	if err == nil {
 		if definition != nil {
 			toSend = fmt.Sprintf("> %s\n\n**👍 %d | %d 👎**", definition.Description, definition.Upvotes, definition.Downvotes)

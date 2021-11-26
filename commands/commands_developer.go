@@ -1,28 +1,29 @@
-package main
+package commands
 
 import (
 	"log"
 	"os"
 	"strings"
 
+	"github.com/arraybot/nautilus/requests"
 	"github.com/bwmarrin/discordgo"
 )
 
 // The kill command.
 // Will kill one of the provided services.
 func handleKill(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	if !commandPermissionDeveloper(i) {
+	if !hasDeveloper(i) {
 		s.InteractionRespond(i.Interaction, respondText(permissionDenyDeveloper, i))
 		return
 	}
 	o := i.ApplicationCommandData().Options
-	commandWhen(o, "services", func(o []*commandOption) {
-		n := commandGet2(o, "name").StringValue()
+	sub(o, "services", func(o []*commandOption) {
+		n := option(o, "name").StringValue()
 		switch strings.ToLower(n) {
 		case "carbon":
 			// Kill the web panel.
 			var response string
-			err := requestPanelKill()
+			err := requests.PanelKill()
 			if err == nil {
 				response = "Carbon terminating..."
 			} else {
@@ -41,7 +42,7 @@ func handleKill(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			s.InteractionRespond(i.Interaction, respondText("Unknown service.", i))
 		}
 	})
-	commandWhen(o, "shard", func(o []*commandOption) {
+	sub(o, "shard", func(o []*commandOption) {
 		// TODO: Tell Mantis to restart a shard.
 		// v := commandGet2(o, "id").IntValue()
 		s.InteractionRespond(i.Interaction, respondText("Attempting to re-connect shard, if it exists.", i))

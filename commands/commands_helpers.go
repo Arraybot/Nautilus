@@ -1,8 +1,10 @@
-package main
+package commands
 
 import (
 	"sync"
 	"time"
+
+	"github.com/arraybot/nautilus/database"
 )
 
 // ttlItem wraps the cache value with a creation time.
@@ -52,7 +54,7 @@ func (t *ttlCache) invalidate(k string) {
 var cacheInvisibility = ttlCache{
 	m: make(map[string]*ttlItem),
 	f: func(k string) bool {
-		return databaseReplyHidden(k)
+		return database.ReplyHidden(k)
 	},
 	i: 600 * 1000,
 }
