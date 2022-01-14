@@ -401,6 +401,12 @@ func option(o []*commandOption, s string) *commandOption {
 	return nil
 }
 
+// Whether or not the command executor has a Discord permission.
+func hasPermission(i *discordgo.InteractionCreate, p int) bool {
+	perm := int64(p)
+	return i.Member.Permissions&perm == perm
+}
+
 // Whether or not the command executor has permission to execute developer commands.
 func hasDeveloper(i *discordgo.InteractionCreate) bool {
 	for _, a := range admins {
@@ -414,9 +420,17 @@ func hasDeveloper(i *discordgo.InteractionCreate) bool {
 	return false
 }
 
-// Whether or not the command executor has the moderator role.
+// Whether or not the command executor has any (kick, timeout, mute, ban) moderator permission.
 func hasModerator(i *discordgo.InteractionCreate) bool {
-	mod := database.Moderator(i.GuildID)
+	k := discordgo.PermissionKickMembers
+	t := discordgo.PermissionModerateMembers
+	m := discordgo.PermissionBanMembers
+	return hasPermission(i, k) || hasPermission(i, t) || hasPermission(i, m) || hasMutePermission(i)
+}
+
+// Whether or not the command executor has the muted permission role.
+func hasMutePermission(i *discordgo.InteractionCreate) bool {
+	mod := database.MutePermission(i.GuildID)
 	for _, role := range i.Member.Roles {
 		if role == mod {
 			return true
@@ -426,6 +440,7 @@ func hasModerator(i *discordgo.InteractionCreate) bool {
 }
 
 // Helper variables.
-var permissionDenyDeveloper = "You need to be an Arraybot authorized developer to execute this command."
-var permissionDenyModerator = "You need to be set as a server moderator to execute this command."
 var permissionDenyPermission = "You do not have the required Discord permission to execute this command."
+var permissionDenyDeveloper = "You need to be an Arraybot authorized developer to execute this command."
+var permissionDenyModerator = "You need to have moderator permissions on this server to execute this command."
+var permissionDenyMuteRole = "You need be given a moderative role to execute this command."
