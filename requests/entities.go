@@ -7,7 +7,8 @@ type PanelHealth struct {
 
 // ListenerHealth is a wrapper for the listener health.
 type ListenerHealth struct {
-	Memory string `json:"memory"`
+	ShardCount int    `json:"shards"`
+	Memory     string `json:"memory"`
 }
 
 // UrbanResult is a wrapper for the urban dictionary result.

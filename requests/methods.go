@@ -73,6 +73,20 @@ func ListenerKill() error {
 	return nil
 }
 
+// Requests to kill the shard.
+func ListenerShard(id int64) (bool, error) {
+	url := fmt.Sprintf("%s/shard?id=%d", listenerUrl, id)
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return false, err
+	}
+	res, err := httpClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+	return res.StatusCode != 400, nil
+}
+
 // Requests a pet and loads it in.
 func PetOnDemand(target Pet) (string, error) {
 	resp, err := httpClient.Get(target.source())

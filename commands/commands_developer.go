@@ -28,7 +28,7 @@ func handleKill(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				response = "Carbon terminating..."
 			} else {
 				log.Println(err)
-				response = "Could not send termination request. Please attempt to do so manually."
+				response = "Termination request failed. Please kill manually."
 			}
 			s.InteractionRespond(i.Interaction, respondText(response, i))
 		case "nautilus":
@@ -43,7 +43,7 @@ func handleKill(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				response = "Mantis terminating..."
 			} else {
 				log.Println(err)
-				response = "Could not send termination request. Please attempt to do so manually."
+				response = "Termination request failed. Please kill manually."
 			}
 			s.InteractionRespond(i.Interaction, respondText(response, i))
 		default:
@@ -51,8 +51,19 @@ func handleKill(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	})
 	sub(o, "shard", func(o []*commandOption) {
-		// TODO: Tell Mantis to restart a shard.
-		// v := commandGet2(o, "id").IntValue()
-		s.InteractionRespond(i.Interaction, respondText("Attempting to re-connect shard, if it exists.", i))
+		v := option(o, "shard").IntValue()
+		var response string
+		r, err := requests.ListenerShard(v)
+		if err == nil {
+			if r {
+				response = "Shard valid, attempting to reconnect..."
+			} else {
+				response = "Shard out of range."
+			}
+		} else {
+			log.Println(err)
+			response = "An error occurred. " + pingStringListener()
+		}
+		s.InteractionRespond(i.Interaction, respondText(response, i))
 	})
 }
