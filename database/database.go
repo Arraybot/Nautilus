@@ -10,8 +10,8 @@ func ReplyHidden(id string) bool {
 	return true
 }
 
-// Moderator gets the moderator role ID of the server.
-func Moderator(id string) string {
+// MutePermission gets the mute permission role ID of the server.
+func MutePermission(id string) string {
 	return ""
 }
 

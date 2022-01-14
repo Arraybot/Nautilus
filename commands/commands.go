@@ -3,7 +3,9 @@ package commands
 import (
 	"log"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/arraybot/nautilus/database"
 	"github.com/bwmarrin/discordgo"
@@ -437,6 +439,16 @@ func hasMutePermission(i *discordgo.InteractionCreate) bool {
 		}
 	}
 	return false
+}
+
+// Gets the timestamp the snowflake was made.
+func creationTime(s string) time.Time {
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return time.Unix(0, 0)
+	}
+	timestamp := (i >> 22) + 1420070400000
+	return time.Unix(timestamp/1000, 0)
 }
 
 // Helper variables.
