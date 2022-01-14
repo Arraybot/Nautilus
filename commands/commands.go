@@ -117,6 +117,148 @@ var commands = []*command{
 		},
 		handler: handleUrban,
 	},
+	// Moderator commands.
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "clear",
+			Description: "Deletes the last X messages where you specify X.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "amount",
+					Description: "The amount to delete.",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    true,
+				},
+				{
+					Name:        "user",
+					Description: "Only delete messages by this user.",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    false,
+				},
+			},
+		},
+		handler: handlerClear,
+	},
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "mute",
+			Description: "Adds the muted role to a user.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "user",
+					Description: "The user to mute.",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    true,
+				},
+			},
+		},
+		handler: handlerMute,
+	},
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "unmute",
+			Description: "Removes the muted role from a user.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "user",
+					Description: "The user to unmute.",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    true,
+				},
+			},
+		},
+		handler: handlerUnMute,
+	},
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "expire",
+			Description: "Expires a punishment at a certain time in the future.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "case",
+					Description: "The case ID.",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    true,
+				},
+				{
+					Name:        "minutes",
+					Description: "How many minutes from now.",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    true,
+				},
+				{
+					Name:        "hours",
+					Description: "How many hours from now.",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    false,
+				},
+				{
+					Name:        "days",
+					Description: "How many days from now.",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    false,
+				},
+				{
+					Name:        "weeks",
+					Description: "How many weeks from now.",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    false,
+				},
+				{
+					Name:        "months",
+					Description: "How many months from now.",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    false,
+				},
+			},
+		},
+		handler: handlerExpire,
+	},
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "revoke",
+			Description: "Revokes a punishment immediately.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "case",
+					Description: "The case ID.",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    true,
+				},
+			},
+		},
+		handler: handlerRevoke,
+	},
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "lookup",
+			Description: "Looks up information on a certain case.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "case",
+					Description: "The case ID.",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    true,
+				},
+			},
+		},
+		handler: handlerLookup,
+	},
+	{
+		appCommand: &discordgo.ApplicationCommand{
+			Name:        "history",
+			Description: "Gets the punishment history of a user.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "user",
+					Description: "The user to get the history for.",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    true,
+				},
+			},
+		},
+		handler: handlerHistory,
+	},
 	// Server commands.
 	{
 		appCommand: &discordgo.ApplicationCommand{
