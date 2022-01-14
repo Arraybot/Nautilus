@@ -5,6 +5,11 @@ type PanelHealth struct {
 	Connections int `json:"connected"`
 }
 
+// ListenerHealth is a wrapper for the listener health.
+type ListenerHealth struct {
+	Memory string `json:"memory"`
+}
+
 // UrbanResult is a wrapper for the urban dictionary result.
 type UrbanResult struct {
 	List []*UrbanDefinition `json:"list"`

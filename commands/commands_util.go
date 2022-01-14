@@ -96,17 +96,11 @@ func handleInvite(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // The ping command.
 // Will just respond with a message.
 func handlePing(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	var healthString string
+	healthString := ""
 	if hasDeveloper(i) {
-		health, err := requests.PanelHealthcheck()
-		if err == nil {
-			healthString = fmt.Sprintf("Panel handling %d concurrent connections.", health.Connections)
-		} else {
-			healthString = "Panel unreachable."
-			log.Println(err)
-		}
-	} else {
-		healthString = ""
+		hsp := pingStringPanel()
+		hsl := pingStringListener()
+		healthString = fmt.Sprintf("%s %s", hsp, hsl)
 	}
 	s.InteractionRespond(i.Interaction, respondText("Pong! Command handler online and responsive. "+healthString, i))
 }
@@ -130,6 +124,28 @@ func handleStats(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed.field("Sys.Alloc.", fmt.Sprintf("%v MiB", bytesToMegabytes(mem.Sys)), true)
 	embed.field("Uptime", elapsed, true)
 	s.InteractionRespond(i.Interaction, respondEmbed(embed, i))
+}
+
+// Computes the healthcheck string for the panel.
+func pingStringPanel() string {
+	health, err := requests.PanelHealthcheck()
+	if err == nil {
+		return fmt.Sprintf("Panel handling %d concurrent connections.", health.Connections)
+	} else {
+		log.Println(err)
+		return "Panel unreachable."
+	}
+}
+
+// Computes the healthcheck string for the listener.
+func pingStringListener() string {
+	health, err := requests.ListenerHealthcheck()
+	if err == nil {
+		return fmt.Sprintf("Listener running on %s memory.", health.Memory)
+	} else {
+		log.Println(err)
+		return "Listener unreachable."
+	}
 }
 
 // Helper variables.

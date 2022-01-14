@@ -12,13 +12,16 @@ import (
 
 // A custom HTTP client with a short timeout to avoid unecessary hangs.
 var httpClient = http.Client{
-	Timeout: 1 * time.Second,
+	Timeout: 500 * time.Millisecond,
 }
+
+// The URLs.
+var panelUrl = fmt.Sprintf("%s://%s:%s", os.Getenv("SCHEME_MONITOR"), os.Getenv("HOST_MONITOR"), os.Getenv("PORT_MONITOR"))
+var listenerUrl = fmt.Sprintf("%s://%s:%s", os.Getenv("SCHEME_LISTENER"), os.Getenv("HOST_LISTENER"), os.Getenv("PORT_LISTENER"))
 
 // Gets the panel's health.
 func PanelHealthcheck() (*PanelHealth, error) {
-	url := fmt.Sprintf("%s://%s:%s", os.Getenv("SCHEME_MONITOR"), os.Getenv("HOST_MONITOR"), os.Getenv("PORT_MONITOR"))
-	resp, err := httpClient.Get(url)
+	resp, err := httpClient.Get(panelUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -33,8 +36,34 @@ func PanelHealthcheck() (*PanelHealth, error) {
 
 // Requests to kill the panel.
 func PanelKill() error {
-	url := fmt.Sprintf("%s://%s:%s", os.Getenv("SCHEME_MONITOR"), os.Getenv("HOST_MONITOR"), os.Getenv("PORT_MONITOR"))
-	req, err := http.NewRequest("DELETE", url, nil)
+	req, err := http.NewRequest("DELETE", panelUrl, nil)
+	if err != nil {
+		return err
+	}
+	if _, err := httpClient.Do(req); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Gets the listener's health.
+func ListenerHealthcheck() (*ListenerHealth, error) {
+	resp, err := httpClient.Get(listenerUrl)
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	var result ListenerHealth
+	err = json.Unmarshal(body, &result)
+	return &result, err
+}
+
+// Requests to kill the listener.
+func ListenerKill() error {
+	req, err := http.NewRequest("DELETE", listenerUrl, nil)
 	if err != nil {
 		return err
 	}

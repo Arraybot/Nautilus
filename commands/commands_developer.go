@@ -37,7 +37,15 @@ func handleKill(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			os.Exit(0)
 		case "mantis":
 			// Kill the gateway listener.
-			s.InteractionRespond(i.Interaction, respondText("Mantis terminating...", i))
+			var response string
+			err := requests.ListenerKill()
+			if err == nil {
+				response = "Mantis terminating..."
+			} else {
+				log.Println(err)
+				response = "Could not send termination request. Please attempt to do so manually."
+			}
+			s.InteractionRespond(i.Interaction, respondText(response, i))
 		default:
 			s.InteractionRespond(i.Interaction, respondText("Unknown service.", i))
 		}
