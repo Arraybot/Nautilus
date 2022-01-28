@@ -57,8 +57,15 @@ func respondEmbedRaw(e *embedBuilder, flag uint64) *discordgo.InteractionRespons
 	}
 }
 
-// Helper method that responds to an interaction using just text.
+// Helper method that responds to an interaction using a simple embed.
 func respondText(s string, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
+	embed := embed()
+	embed.Embed.Author = nil
+	embed.description(s)
+	return respondEmbed(embed, i)
+}
+
+func respondTextRaw(s string, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
 	var flag uint64 = 0
 	if cacheInvisibility.get(i.GuildID) {
 		flag = 64

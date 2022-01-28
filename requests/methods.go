@@ -15,8 +15,11 @@ import (
 )
 
 // A custom HTTP client with a short timeout to avoid unecessary hangs.
-var httpClient = http.Client{
+var httpClientShort = http.Client{
 	Timeout: 500 * time.Millisecond,
+}
+var httpClientLong = http.Client{
+	Timeout: 2 * time.Second,
 }
 
 // The URLs.
@@ -25,7 +28,7 @@ var listenerUrl = fmt.Sprintf("%s://%s:%s", os.Getenv("SCHEME_LISTENER"), os.Get
 
 // Gets the panel's health.
 func PanelHealthcheck() (*PanelHealth, error) {
-	resp, err := httpClient.Get(panelUrl)
+	resp, err := httpClientShort.Get(panelUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +47,7 @@ func PanelKill() error {
 	if err != nil {
 		return err
 	}
-	if _, err := httpClient.Do(req); err != nil {
+	if _, err := httpClientShort.Do(req); err != nil {
 		return err
 	}
 	return nil
@@ -52,7 +55,7 @@ func PanelKill() error {
 
 // Gets the listener's health.
 func ListenerHealthcheck() (*ListenerHealth, error) {
-	resp, err := httpClient.Get(listenerUrl)
+	resp, err := httpClientShort.Get(listenerUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +74,7 @@ func ListenerKill() error {
 	if err != nil {
 		return err
 	}
-	if _, err := httpClient.Do(req); err != nil {
+	if _, err := httpClientShort.Do(req); err != nil {
 		return err
 	}
 	return nil
@@ -87,7 +90,7 @@ func ListenerCommand(i *discordgo.InteractionCreate) error {
 	if err != nil {
 		return err
 	}
-	res, err := httpClient.Do(req)
+	res, err := httpClientShort.Do(req)
 	if err != nil {
 		return err
 	}
@@ -104,7 +107,7 @@ func ListenerShard(id int64) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	res, err := httpClient.Do(req)
+	res, err := httpClientShort.Do(req)
 	if err != nil {
 		return false, err
 	}
@@ -118,13 +121,13 @@ func ListenerExpire(guild string, c int64, t int64) error {
 	if err != nil {
 		return err
 	}
-	_, err = httpClient.Do(req)
+	_, err = httpClientShort.Do(req)
 	return err
 }
 
 // Requests a pet and loads it in.
 func PetOnDemand(target Pet) (string, error) {
-	resp, err := httpClient.Get(target.source())
+	resp, err := httpClientLong.Get(target.source())
 	if err != nil {
 		return "", err
 	}
@@ -142,7 +145,7 @@ func PetOnDemand(target Pet) (string, error) {
 // Gets the top urban dictionary definition.
 func Urban(p string) (*UrbanDefinition, error) {
 	url := fmt.Sprintf("http://api.urbandictionary.com/v0/define?term=%s", p)
-	resp, err := httpClient.Get(url)
+	resp, err := httpClientLong.Get(url)
 	if err != nil {
 		return nil, err
 	}

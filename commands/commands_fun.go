@@ -30,7 +30,7 @@ func handleCat(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		toSend = "Error getting cat."
 		log.Println(err)
 	}
-	s.InteractionRespond(i.Interaction, respondText(toSend, i))
+	s.InteractionRespond(i.Interaction, respondTextRaw(toSend, i))
 }
 
 // The dog command.
@@ -45,7 +45,7 @@ func handleDog(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		toSend = "Error getting dog."
 		log.Println(err)
 	}
-	s.InteractionRespond(i.Interaction, respondText(toSend, i))
+	s.InteractionRespond(i.Interaction, respondTextRaw(toSend, i))
 }
 
 // The eightball command.
