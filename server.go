@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/arraybot/nautilus/commands"
 	"github.com/arraybot/nautilus/config"
 )
 
@@ -24,6 +25,7 @@ func epRegister(w http.ResponseWriter, req *http.Request) {
 	if c := handleAuthorization(w, req); !c {
 		return
 	}
+	// TODO: Register custom command.
 }
 
 // The endpoint that removes a custom command from a guild.
@@ -35,6 +37,7 @@ func epUnregister(w http.ResponseWriter, req *http.Request) {
 	if c := handleAuthorization(w, req); !c {
 		return
 	}
+	// TODO: Unregister custom command.
 }
 
 // The endpoint that invalidates the cache for a guild.
@@ -46,7 +49,13 @@ func epInvalidate(w http.ResponseWriter, req *http.Request) {
 	if c := handleAuthorization(w, req); !c {
 		return
 	}
-	// TODO: Invalidate cache.
+	params := req.URL.Query()
+	guild := params.Get("guild")
+	if guild == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	commands.CacheInvisibility.Invalidate(guild)
 }
 
 // Checks if the request actually came from the web panel, using authorization tokens.

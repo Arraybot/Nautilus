@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/arraybot/nautilus/config"
+	"github.com/arraybot/nautilus/database"
 	"github.com/arraybot/nautilus/requests"
 	"github.com/bwmarrin/discordgo"
 )
@@ -110,13 +111,9 @@ func handlePing(s *discordgo.Session, i *discordgo.InteractionCreate) {
 func handleStats(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed := embed()
 	embed.description("Here are some statistics.")
-	// TODO obtain actual statistics.
-	statsGuilds := -1
-	statsMessages := -1
-	statsCommandsRun := -1
-	embed.field("# of Servers", strconv.Itoa(statsGuilds), true)
-	embed.field("# of Messages", strconv.Itoa(statsMessages), true)
-	embed.field("# of Commands Run", strconv.Itoa(statsCommandsRun), true)
+	embed.field("# of Servers", fmt.Sprintf("~%d", database.StatGuilds()), true)
+	embed.field("# of Commands Run", fmt.Sprintf("~%d", database.StatCommands()), true)
+	embed.field("# of Rows", fmt.Sprintf("~%d", database.StatRows()), true)
 	var mem runtime.MemStats
 	runtime.ReadMemStats(&mem)
 	elapsed := time.Since(config.StartTime).String()

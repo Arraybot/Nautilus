@@ -43,7 +43,7 @@ func (t *ttlCache) get(k string) bool {
 }
 
 // invalidate invalidates the cache entry for a given string.
-func (t *ttlCache) invalidate(k string) {
+func (t *ttlCache) Invalidate(k string) {
 	t.l.Lock()
 	delete(t.m, k)
 	t.l.Unlock()
@@ -51,7 +51,7 @@ func (t *ttlCache) invalidate(k string) {
 
 // Caches whether or not to send commands invsible to the server.
 // Valid for: 10 minutes.
-var cacheInvisibility = ttlCache{
+var CacheInvisibility = ttlCache{
 	m: make(map[string]*ttlItem),
 	f: func(k string) bool {
 		return database.ReplyHidden(k)

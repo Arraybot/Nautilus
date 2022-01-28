@@ -40,7 +40,7 @@ func (e *embedBuilder) field(t, v string, b bool) {
 // Helper function that responds to an interaction using an embed.
 func respondEmbed(e *embedBuilder, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
 	var flag uint64 = 0
-	if cacheInvisibility.get(i.GuildID) {
+	if CacheInvisibility.get(i.GuildID) {
 		flag = 64
 	}
 	return respondEmbedRaw(e, flag)
@@ -67,7 +67,7 @@ func respondText(s string, i *discordgo.InteractionCreate) *discordgo.Interactio
 
 func respondTextRaw(s string, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
 	var flag uint64 = 0
-	if cacheInvisibility.get(i.GuildID) {
+	if CacheInvisibility.get(i.GuildID) {
 		flag = 64
 	}
 	return &discordgo.InteractionResponse{

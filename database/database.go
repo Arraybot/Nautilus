@@ -17,26 +17,6 @@ func Disabled(id string) []string {
 	return []string{}
 }
 
-// ReplyHidden gets the mode to respond to.
-func ReplyHidden(id string) bool {
-	return true
-}
-
-// MuteRole gets the mute role ID of the server.
-func MuteRole(id string) string {
-	return "419474184536850435"
-}
-
-// MutePermission gets the mute permission role ID of the server.
-func MutePermission(id string) string {
-	return "388004558909210624"
-}
-
-// Guide gets the server guide.
-func Guide(id string) string {
-	return ""
-}
-
 // GetPunishment gets a punishment by guild and case ID.
 func GetPunishment(guild, id string) *Punishment {
 	return &Punishment{
@@ -54,4 +34,36 @@ func GetPunishment(guild, id string) *Punishment {
 // GetPunishments gets all of a user's punishments by guild and user ID.
 func GetPunishments(guild, id string) []*Punishment {
 	return []*Punishment{}
+}
+
+// Guide gets the server guide.
+func Guide(id string) string {
+	return ""
+}
+
+// MuteRole gets the mute role ID of the server.
+func MuteRole(id string) string {
+	return "419474184536850435"
+}
+
+// MutePermission gets the mute permission role ID of the server.
+func MutePermission(id string) string {
+	return "388004558909210624"
+}
+
+// ReplyHidden gets the mode to respond to.
+func ReplyHidden(id string) bool {
+	return true
+}
+
+func StatCommands() int {
+	return 0
+}
+
+func StatGuilds() int {
+	return 0
+}
+
+func StatRows() int {
+	return 0
 }
