@@ -146,6 +146,9 @@ func Urban(p string) (*UrbanDefinition, error) {
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode == 431 {
+		return nil, nil
+	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err

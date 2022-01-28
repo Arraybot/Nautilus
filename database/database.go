@@ -7,6 +7,7 @@ type Punishment struct {
 	User   int64
 	Staff  int64
 	Reason string
+	Time   int64
 	Expiry int64
 	Log    int64
 }
@@ -36,9 +37,21 @@ func Guide(id string) string {
 	return ""
 }
 
+// GetPunishment gets a punishment by guild and case ID.
 func GetPunishment(guild, id string) *Punishment {
 	return &Punishment{
-		ID:   1,
-		Type: "KICK",
+		ID:     1,
+		Type:   "KICK",
+		User:   115134128717955080,
+		Staff:  115134128717955080,
+		Reason: "Test",
+		Time:   1643381808000,
+		Expiry: 1643381808000,
+		Log:    115134128717955080,
 	}
+}
+
+// GetPunishments gets all of a user's punishments by guild and user ID.
+func GetPunishments(guild, id string) []*Punishment {
+	return []*Punishment{}
 }

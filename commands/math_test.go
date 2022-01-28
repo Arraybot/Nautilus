@@ -1,6 +1,9 @@
 package commands
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestWhiteToHex(t *testing.T) {
 	res := rgbToHex(255, 255, 255)
@@ -83,5 +86,47 @@ func TestManyBytesToMB(t *testing.T) {
 	res := bytesToMegabytes(4194304)
 	if res != 4 {
 		t.Error("4194304 bytes should be 4 megabytes")
+	}
+}
+
+func TestNothing(t *testing.T) {
+	from, to, count := paginate(0, 0)
+	if from != 0 || to != 0 || count != 0 {
+		t.Error("0 length should return [0, 0)")
+	}
+}
+
+func TestOnePageBelowBoundary(t *testing.T) {
+	from, to, count := paginate(5, 1)
+	fmt.Println(to)
+	if from != 0 || to != 5 || count != 1 {
+		t.Error("should return [0, 5)")
+	}
+}
+
+func TestOnePageOnBoundary(t *testing.T) {
+	from, to, count := paginate(10, 1)
+	if from != 0 || to != 10 || count != 1 {
+		t.Error("should return [0, 10)")
+	}
+}
+func TestTwoPageBelowBoundary(t *testing.T) {
+	from, to, count := paginate(15, 2)
+	if from != 10 || to != 15 || count != 2 {
+		t.Error("should return [0, 15)")
+	}
+}
+
+func TestTwoPageOnBoundary(t *testing.T) {
+	from, to, count := paginate(20, 2)
+	if from != 10 || to != 20 || count != 2 {
+		t.Error("should return [10, 20)")
+	}
+}
+
+func TestThreePages(t *testing.T) {
+	from, to, count := paginate(40, 3)
+	if from != 20 || to != 30 || count != 4 {
+		t.Error("should return [20, 30)")
 	}
 }

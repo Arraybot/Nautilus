@@ -243,6 +243,12 @@ var commands = []*command{
 					Type:        discordgo.ApplicationCommandOptionUser,
 					Required:    true,
 				},
+				{
+					Name:        "page",
+					Description: "The page number.",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    false,
+				},
 			},
 		},
 		handler: handlerHistory,

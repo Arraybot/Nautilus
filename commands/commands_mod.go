@@ -133,7 +133,7 @@ func handlerRevoke(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if monthsOption != nil && monthsOption.IntValue() > 0 {
 		clock = clock.AddDate(0, int(daysOption.IntValue()), 0)
 	}
-	// Attempt to load command.
+	// Attempt to load case.
 	id := option(i.ApplicationCommandData().Options, "case").IntValue()
 	punishment := database.GetPunishment(i.GuildID, fmt.Sprintf("%d", id))
 	if punishment == nil {
@@ -172,7 +172,29 @@ func handlerLookup(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		s.InteractionRespond(i.Interaction, respondText(permissionDenyModerator, i))
 		return
 	}
-	s.InteractionRespond(i.Interaction, respondText("Lookup", i))
+	// Attempt to load case.
+	id := option(i.ApplicationCommandData().Options, "case").IntValue()
+	punishment := database.GetPunishment(i.GuildID, fmt.Sprintf("%d", id))
+	if punishment == nil {
+		s.InteractionRespond(i.Interaction, respondText("This case could not be found.", i))
+		return
+	}
+	// Compute the expiry.
+	var expiry string
+	if punishment.Expiry == -1 {
+		expiry = "Indefinite"
+	} else {
+		epoch := punishment.Expiry / 1000
+		expiry = fmt.Sprintf("<t:%d:f>", epoch)
+	}
+	embed := embed()
+	embed.description(fmt.Sprintf("Here is the information on **case %d**.\nTo look up a certain user's history, execute `/history @user`.\n%s", id, zwsp))
+	embed.field("Type", resolvePunishmentPrettyPrint(punishment.Type), false)
+	embed.field("User", resolveUser(s, punishment.User), false)
+	embed.field("Staff", resolveUser(s, punishment.Staff), false)
+	embed.field("Expires", expiry, false)
+	embed.field("Reason", resolvePunishmentReason(punishment.Reason), false)
+	s.InteractionRespond(i.Interaction, respondEmbed(embed, i))
 }
 
 // The history command.
@@ -182,5 +204,58 @@ func handlerHistory(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		s.InteractionRespond(i.Interaction, respondText(permissionDenyModerator, i))
 		return
 	}
-	s.InteractionRespond(i.Interaction, respondText("History", i))
+	// Attempt to load command.
+	user := option(i.ApplicationCommandData().Options, "user").UserValue(nil).ID
+	page := 1
+	pageOption := option(i.ApplicationCommandData().Options, "page")
+	if pageOption != nil {
+		page = int(pageOption.IntValue())
+	}
+	punishments := database.GetPunishments(i.GuildID, user)
+	pageFrom, pageTo, pageTotal := paginate(len(punishments), page)
+	showcase := punishments[pageFrom:pageTo]
+	if len(showcase) == 0 {
+		s.InteractionRespond(i.Interaction, respondText("This user has no punishment history know to Arraybot.", i))
+	} else {
+		embed := embed()
+		embed.description(fmt.Sprintf("Showing page **(%d/%d)**. You can specify other pages using the command argument.\nFor more details, execute `/lookup <CASE>`.\n%s", page, pageTotal, zwsp))
+		for _, punishment := range showcase {
+			embed.field(fmt.Sprintf("%s on <t:%d:f> (Case ID: %d)", resolvePunishmentPrettyPrint(punishment.Type), punishment.Time, punishment.ID), fmt.Sprintf("%s\n%s", punishment.Reason, zwsp), false)
+		}
+		s.InteractionRespond(i.Interaction, respondEmbed(embed, i))
+	}
+}
+
+// Resolves a user through the snowflake.
+func resolveUser(s *discordgo.Session, id int64) string {
+	uid := fmt.Sprintf("%d", id)
+	user, err := s.User(uid)
+	if err != nil {
+		return uid
+	} else {
+		return fmt.Sprintf("\n%s#%s", user.Username, user.Discriminator)
+	}
+}
+
+// Gets a nice punishment print.
+func resolvePunishmentPrettyPrint(t string) string {
+	switch t {
+	case punishmentTypeKick:
+		return "👢 Kick"
+	case punishmentTypeTimeout:
+		return "🪑 Timeout"
+	case punishmentTypeMute:
+		return "🤐 Mute"
+	case punishmentTypeBan:
+		return "🔨 Ban"
+	default:
+		return "❓ Unknown"
+	}
+}
+
+func resolvePunishmentReason(t string) string {
+	if t == "" {
+		return "*No reason provided.*"
+	}
+	return t
 }
