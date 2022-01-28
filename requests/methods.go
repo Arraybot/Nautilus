@@ -1,13 +1,17 @@
 package requests
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"sort"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 // A custom HTTP client with a short timeout to avoid unecessary hangs.
@@ -73,6 +77,26 @@ func ListenerKill() error {
 	return nil
 }
 
+func ListenerCommand(i *discordgo.InteractionCreate) error {
+	data, err := json.Marshal(i)
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%s/interaction", listenerUrl)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
+	res, err := httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != 200 {
+		return errors.New("command interaction failed")
+	}
+	return nil
+}
+
 // Requests to kill the shard.
 func ListenerShard(id int64) (bool, error) {
 	url := fmt.Sprintf("%s/shard?id=%d", listenerUrl, id)
@@ -85,6 +109,17 @@ func ListenerShard(id int64) (bool, error) {
 		return false, err
 	}
 	return res.StatusCode != 400, nil
+}
+
+// Schedules the revocation of a punishment
+func ListenerExpire(guild string, c int64, t int64) error {
+	url := fmt.Sprintf("%s/revoke?guild=%s&case=%d&t=%d", listenerUrl, guild, c, t)
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return err
+	}
+	_, err = httpClient.Do(req)
+	return err
 }
 
 // Requests a pet and loads it in.

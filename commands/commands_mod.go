@@ -5,9 +5,20 @@ import (
 	"log"
 	"time"
 
+	"github.com/arraybot/nautilus/database"
+	"github.com/arraybot/nautilus/requests"
 	"github.com/bwmarrin/discordgo"
 )
 
+const (
+	punishmentTypeKick    = "KICK"
+	punishmentTypeTimeout = "TIMEOUT"
+	punishmentTypeMute    = "MUTE"
+	punishmentTypeBan     = "BAN"
+)
+
+// The clear command.
+// Will bulk delete messages in a channel and optionally by a specific user.
 func handlerClear(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if !hasPermission(i, discordgo.PermissionManageMessages) {
 		s.InteractionRespond(i.Interaction, respondText(permissionDenyPermission, i))
@@ -61,32 +72,101 @@ func handlerClear(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
+// The mute command.
+// This will add the muted role to the user.
 func handlerMute(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if !hasMutePermission(i) {
 		s.InteractionRespond(i.Interaction, respondText(permissionDenyMuteRole, i))
 		return
 	}
-	s.InteractionRespond(i.Interaction, respondText("Mute", i))
+	user := option(i.ApplicationCommandData().Options, "user").UserValue(nil).ID
+	muteRole := database.MuteRole(i.GuildID)
+	err := s.GuildMemberRoleAdd(i.GuildID, user, muteRole)
+	if err != nil {
+		log.Println(err)
+		s.InteractionRespond(i.Interaction, respondText("An error occurred adding the role.", i))
+	} else {
+		s.InteractionRespond(i.Interaction, respondText("The person has been muted.", i))
+	}
 }
 
+// The unmute command.
+// This will remove the muted role from the user.
 func handlerUnMute(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if !hasMutePermission(i) {
 		s.InteractionRespond(i.Interaction, respondText(permissionDenyMuteRole, i))
 		return
 	}
-	s.InteractionRespond(i.Interaction, respondText("Unmute", i))
+	user := option(i.ApplicationCommandData().Options, "user").UserValue(nil).ID
+	muteRole := database.MuteRole(i.GuildID)
+	err := s.GuildMemberRoleRemove(i.GuildID, user, muteRole)
+	if err != nil {
+		log.Println(err)
+		s.InteractionRespond(i.Interaction, respondText("An error occurred removing the role.", i))
+	} else {
+		s.InteractionRespond(i.Interaction, respondText("The person has been unmuted.", i))
+	}
 }
 
-func handlerExpire(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	// TODO: Look up punishment type and determine permission dynamically.
-	s.InteractionRespond(i.Interaction, respondText("Expire", i))
-}
-
+// The revoke command.
+// This will revoke the punishment either now or later.
 func handlerRevoke(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	// TODO: Look up punishment type and determine permission dynamically.
-	s.InteractionRespond(i.Interaction, respondText("Revoke", i))
+	// Parse the relative time and add it to the current time.
+	clock := time.Now()
+	minutesOption := option(i.ApplicationCommandData().Options, "minutes")
+	hoursOption := option(i.ApplicationCommandData().Options, "hours")
+	daysOption := option(i.ApplicationCommandData().Options, "days")
+	weeksOption := option(i.ApplicationCommandData().Options, "weeks")
+	monthsOption := option(i.ApplicationCommandData().Options, "months")
+	if minutesOption != nil && minutesOption.IntValue() > 0 {
+		clock = clock.Add(time.Minute * time.Duration(minutesOption.IntValue()))
+	}
+	if hoursOption != nil && hoursOption.IntValue() > 0 {
+		clock = clock.Add(time.Hour * time.Duration(hoursOption.IntValue()))
+	}
+	if daysOption != nil && daysOption.IntValue() > 0 {
+		clock = clock.AddDate(0, 0, int(daysOption.IntValue()))
+	}
+	if weeksOption != nil && weeksOption.IntValue() > 0 {
+		clock = clock.AddDate(0, 0, 7*int(daysOption.IntValue()))
+	}
+	if monthsOption != nil && monthsOption.IntValue() > 0 {
+		clock = clock.AddDate(0, int(daysOption.IntValue()), 0)
+	}
+	// Attempt to load command.
+	id := option(i.ApplicationCommandData().Options, "case").IntValue()
+	punishment := database.GetPunishment(i.GuildID, fmt.Sprintf("%d", id))
+	if punishment == nil {
+		s.InteractionRespond(i.Interaction, respondText("This case could not be found.", i))
+		return
+	}
+	// Determine permission.
+	permission := false
+	switch punishment.Type {
+	case punishmentTypeKick:
+		permission = hasPermission(i, discordgo.PermissionKickMembers)
+	case punishmentTypeTimeout:
+		permission = hasPermission(i, discordgo.PermissionModerateMembers)
+	case punishmentTypeMute:
+		permission = hasMutePermission(i)
+	case punishmentTypeBan:
+		permission = hasPermission(i, discordgo.PermissionBanMembers)
+	}
+	if !permission {
+		s.InteractionRespond(i.Interaction, respondText("You do not have the permission to revoke this punishment.", i))
+		return
+	}
+	// Schedule expiry and complete.
+	epoch := clock.Unix()
+	if err := requests.ListenerExpire(i.GuildID, id, epoch); err != nil {
+		s.InteractionRespond(i.Interaction, respondText("An error occurred trying to revoke the punishment.", i))
+	} else {
+		s.InteractionRespond(i.Interaction, respondText(fmt.Sprintf("The punishment will now be revoked at <t:%d:f>. As long as the punishment is not yet expired, you may change its revocation time/date.", epoch), i))
+	}
 }
 
+// The lookup command.
+// Looks up a punishment by case.
 func handlerLookup(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if !hasModerator(i) {
 		s.InteractionRespond(i.Interaction, respondText(permissionDenyModerator, i))
@@ -95,6 +175,8 @@ func handlerLookup(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.InteractionRespond(i.Interaction, respondText("Lookup", i))
 }
 
+// The history command.
+// Looks up all the punishment history by a specific user.
 func handlerHistory(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if !hasModerator(i) {
 		s.InteractionRespond(i.Interaction, respondText(permissionDenyModerator, i))

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/arraybot/nautilus/database"
+	"github.com/arraybot/nautilus/requests"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -173,8 +174,8 @@ var commands = []*command{
 	},
 	{
 		appCommand: &discordgo.ApplicationCommand{
-			Name:        "expire",
-			Description: "Expires a punishment at a certain time in the future.",
+			Name:        "revoke",
+			Description: "Revokes a punishment either immediately or in the relative future.",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "case",
@@ -186,7 +187,7 @@ var commands = []*command{
 					Name:        "minutes",
 					Description: "How many minutes from now.",
 					Type:        discordgo.ApplicationCommandOptionInteger,
-					Required:    true,
+					Required:    false,
 				},
 				{
 					Name:        "hours",
@@ -211,21 +212,6 @@ var commands = []*command{
 					Description: "How many months from now.",
 					Type:        discordgo.ApplicationCommandOptionInteger,
 					Required:    false,
-				},
-			},
-		},
-		handler: handlerExpire,
-	},
-	{
-		appCommand: &discordgo.ApplicationCommand{
-			Name:        "revoke",
-			Description: "Revokes a punishment immediately.",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Name:        "case",
-					Description: "The case ID.",
-					Type:        discordgo.ApplicationCommandOptionInteger,
-					Required:    true,
 				},
 			},
 		},
@@ -369,7 +355,12 @@ func Distributor(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			} else {
 				s.InteractionRespond(i.Interaction, respondText("This command has been disabled by the/a server administrator(s).", i))
 			}
+			return
 		}
+	}
+	// If we get here, then it must be a custom command.
+	if err := requests.ListenerCommand(i); err != nil {
+		log.Println(err)
 	}
 }
 
